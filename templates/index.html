@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Identifier</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for smooth transitions */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-8">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold text-center mb-10 text-gray-800">
+            🐾 Animal Identifier 🐾
+        </h1>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Animal Selection Box -->
+            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Select an Animal</h2>
+                
+                <div class="space-y-3">
+                    <label class="flex items-center p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input type="radio" name="animal" value="cat" class="w-5 h-5 text-blue-600 focus:ring-blue-500" onchange="showAnimal('cat')">
+                        <span class="ml-3 text-lg">🐱 Cat</span>
+                    </label>
+                    
+                    <label class="flex items-center p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input type="radio" name="animal" value="dog" class="w-5 h-5 text-blue-600 focus:ring-blue-500" onchange="showAnimal('dog')">
+                        <span class="ml-3 text-lg">🐶 Dog</span>
+                    </label>
+                    
+                    <label class="flex items-center p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                        <input type="radio" name="animal" value="elephant" class="w-5 h-5 text-blue-600 focus:ring-blue-500" onchange="showAnimal('elephant')">
+                        <span class="ml-3 text-lg">🐘 Elephant</span>
+                    </label>
+                </div>
+                
+                <!-- Animal Display Area -->
+                <div id="animalDisplay" class="mt-6 hidden">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <img id="animalImage" src="" alt="Animal" class="w-full h-64 object-cover rounded-lg shadow-md fade-in">
+                        <p id="animalName" class="text-center mt-3 text-lg font-medium text-gray-700"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- File Upload Box -->
+            <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-700">Upload a File</h2>
+                
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    
+                    <input type="file" id="fileInput" class="hidden" onchange="handleFileUpload(event)">
+                    <label for="fileInput" class="mt-4 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer transition-colors">
+                        Choose File
+                    </label>
+                    
+                    <p class="mt-2 text-sm text-gray-500">or drag and drop</p>
+                </div>
+                
+                <!-- File Info Display Area -->
+                <div id="fileInfo" class="mt-6 hidden">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 fade-in">
+                        <h3 class="text-lg font-semibold text-green-800 mb-2">File Information:</h3>
+                        <div class="space-y-1">
+                            <p class="text-sm"><span class="font-medium text-gray-700">Name:</span> <span id="fileName" class="text-gray-600"></span></p>
+                            <p class="text-sm"><span class="font-medium text-gray-700">Size:</span> <span id="fileSize" class="text-gray-600"></span></p>
+                            <p class="text-sm"><span class="font-medium text-gray-700">Type:</span> <span id="fileType" class="text-gray-600"></span></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="hidden mt-4">
+                    <div class="flex justify-center">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Animal image data (embedded as base64 to avoid external dependencies)
+        const animalImages = {
+            cat: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjRkZBNTAwIiBkPSJNMjU2IDMyQzEzMi4zIDMyIDMyIDEzMi4zIDMyIDI1NnMxMDAuMyAyMjQgMjI0IDIyNCAyMjQtMTAwLjMgMjI0LTIyNFMzNzkuNyAzMiAyNTYgMzJ6TTI1NiA0MzJjLTk3LjIgMC0xNzYtNzguOC0xNzYtMTc2UzE1OC44IDgwIDI1NiA4MHMxNzYgNzguOCAxNzYgMTc2LTc4LjggMTc2LTE3NiAxNzZ6Ii8+PHBhdGggZmlsbD0iI0ZGQTUwMCIgZD0iTTE3NiAxNzZjLTE3LjcgMC0zMiAxNC4zLTMyIDMyczE0LjMgMzIgMzIgMzIgMzItMTQuMyAzMi0zMi0xNC4zLTMyLTMyLTMyem0xNjAgMGMtMTcuNyAwLTMyIDE0LjMtMzIgMzJzMTQuMyAzMiAzMiAzMiAzMi0xNC4zIDMyLTMyLTE0LjMtMzItMzItMzJ6bS04MCA5NmMtMzUuMyAwLTY0IDI4LjctNjQgNjRoMTI4YzAtMzUuMy0yOC43LTY0LTY0LTY0eiIvPjwvc3ZnPg==',
+            dog: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjOEI0NTEzIiBkPSJNMjU2IDY0QzE1MC4xIDY0IDY0IDE1MC4xIDY0IDI1NnM4Ni4xIDE5MiAxOTIgMTkyIDE5Mi04Ni4xIDE5Mi0xOTJTMzYxLjkgNjQgMjU2IDY0em0wIDMzNmMtNzkuNSAwLTE0NC02NC41LTE0NC0xNDRTMTc2LjUgMTEyIDI1NiAxMTJzMTQ0IDY0LjUgMTQ0IDE0NC02NC41IDE0NC0xNDQgMTQ0eiIvPjxwYXRoIGZpbGw9IiM4QjQ1MTMiIGQ9Ik0xNzYgMjAwYy0xMy4zIDAtMjQgMTAuNy0yNCAyNHMxMC43IDI0IDI0IDI0IDI0LTEwLjcgMjQtMjQtMTAuNy0yNC0yNC0yNHptMTYwIDBjLTEzLjMgMC0yNCAxMC43LTI0IDI0czEwLjcgMjQgMjQgMjQgMjQtMTAuNyAyNC0yNC0xMC43LTI0LTI0LTI0em0tODAgODBjLTI2LjUgMC00OCAyMS41LTQ4IDQ4aDk2YzAtMjYuNS0yMS41LTQ4LTQ4LTQ4eiIvPjwvc3ZnPg==',
+            elephant: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjNjk2OTY5IiBkPSJNMjU2IDQ4QzE0MS4xIDQ4IDQ4IDE0MS4xIDQ4IDI1NnM5My4xIDIwOCAyMDggMjA4IDIwOC05My4xIDIwOC0yMDhTMzcwLjkgNDggMjU2IDQ4em0wIDM2OGMtODguNCAwLTE2MC03MS42LTE2MC0xNjBTMTY3LjYgOTYgMjU2IDk2czE2MCA3MS42IDE2MCAxNjAtNzEuNiAxNjAtMTYwIDE2MHoiLz48cGF0aCBmaWxsPSIjNjk2OTY5IiBkPSJNMTg0IDE4NGMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNCAyNC0xMC43IDI0LTI0LTEwLjctMjQtMjQtMjR6bTE0NCAwYy0xMy4zIDAtMjQgMTAuNy0yNCAyNHMxMC43IDI0IDI0IDI0IDI0LTEwLjcgMjQtMjQtMTAuNy0yNC0yNC0yNHptLTcyIDcyYy0zMC45IDAtNTYgMjUuMS01NiA1Nmg0OGMwLTQuNCAwLTggOC04czggMy42IDggOGg0OGMwLTMwLjktMjUuMS01Ni01Ni01NnoiLz48L3N2Zz4='
+        };
+        
+        function showAnimal(animal) {
+            const display = document.getElementById('animalDisplay');
+            const image = document.getElementById('animalImage');
+            const name = document.getElementById('animalName');
+            
+            // Set the image and name
+            image.src = animalImages[animal];
+            name.textContent = animal.charAt(0).toUpperCase() + animal.slice(1);
+            
+            // Show the display area with animation
+            display.classList.remove('hidden');
+            image.classList.remove('fade-in');
+            void image.offsetWidth; // Trigger reflow
+            image.classList.add('fade-in');
+        }
+        
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Show loading spinner
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const fileInfo = document.getElementById('fileInfo');
+            loadingSpinner.classList.remove('hidden');
+            fileInfo.classList.add('hidden');
+            
+            // Create FormData and upload file
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Display file information
+                    document.getElementById('fileName').textContent = data.filename;
+                    document.getElementById('fileSize').textContent = formatFileSize(data.size);
+                    document.getElementById('fileType').textContent = data.content_type || 'Unknown';
+                    
+                    // Show file info and hide loading
+                    loadingSpinner.classList.add('hidden');
+                    fileInfo.classList.remove('hidden');
+                } else {
+                    alert('Upload failed. Please try again.');
+                    loadingSpinner.classList.add('hidden');
+                }
+            } catch (error) {
+                alert('An error occurred during upload.');
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Add drag and drop functionality
+        const dropZone = document.querySelector('.border-dashed').parentElement;
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.querySelector('.border-dashed').classList.add('border-blue-400', 'bg-blue-50');
+        });
+        
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.querySelector('.border-dashed').classList.remove('border-blue-400', 'bg-blue-50');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.querySelector('.border-dashed').classList.remove('border-blue-400', 'bg-blue-50');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('fileInput').files = files;
+                handleFileUpload({ target: { files: files } });
+            }
+        });
+    </script>
+</body>
+</html>
