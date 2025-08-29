@@ -15,6 +15,16 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        .emoji-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-8">
@@ -48,6 +58,9 @@
                 <!-- Animal Display Area -->
                 <div id="animalDisplay" class="mt-6 hidden">
                     <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="text-center mb-4">
+                            <span id="animalEmoji" class="text-8xl fade-in emoji-pulse inline-block"></span>
+                        </div>
                         <img id="animalImage" src="" alt="Animal" class="w-full h-64 object-cover rounded-lg shadow-md fade-in">
                         <p id="animalName" class="text-center mt-3 text-lg font-medium text-gray-700"></p>
                     </div>
@@ -101,19 +114,33 @@
             elephant: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjNjk2OTY5IiBkPSJNMjU2IDQ4QzE0MS4xIDQ4IDQ4IDE0MS4xIDQ4IDI1NnM5My4xIDIwOCAyMDggMjA4IDIwOC05My4xIDIwOC0yMDhTMzcwLjkgNDggMjU2IDQ4em0wIDM2OGMtODguNCAwLTE2MC03MS42LTE2MC0xNjBTMTY3LjYgOTYgMjU2IDk2czE2MCA3MS42IDE2MCAxNjAtNzEuNiAxNjAtMTYwIDE2MHoiLz48cGF0aCBmaWxsPSIjNjk2OTY5IiBkPSJNMTg0IDE4NGMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNCAyNC0xMC43IDI0LTI0LTEwLjctMjQtMjQtMjR6bTE0NCAwYy0xMy4zIDAtMjQgMTAuNy0yNCAyNHMxMC43IDI0IDI0IDI0IDI0LTEwLjcgMjQtMjQtMTAuNy0yNC0yNC0yNHptLTcyIDcyYy0zMC45IDAtNTYgMjUuMS01NiA1Nmg0OGMwLTQuNCAwLTggOC04czggMy42IDggOGg0OGMwLTMwLjktMjUuMS01Ni01Ni01NnoiLz48L3N2Zz4='
         };
         
+        // Animal emojis
+        const animalEmojis = {
+            cat: '🐱',
+            dog: '🐶',
+            elephant: '🐘'
+        };
+        
         function showAnimal(animal) {
             const display = document.getElementById('animalDisplay');
+            const emoji = document.getElementById('animalEmoji');
             const image = document.getElementById('animalImage');
             const name = document.getElementById('animalName');
             
-            // Set the image and name
+            // Set the emoji, image and name
+            emoji.textContent = animalEmojis[animal];
             image.src = animalImages[animal];
-            name.textContent = animal.charAt(0).toUpperCase() + animal.slice(1);
+            name.textContent = `${animalEmojis[animal]} ${animal.charAt(0).toUpperCase() + animal.slice(1)} ${animalEmojis[animal]}`;
             
             // Show the display area with animation
             display.classList.remove('hidden');
+            
+            // Animate both emoji and image
+            emoji.classList.remove('fade-in');
             image.classList.remove('fade-in');
+            void emoji.offsetWidth; // Trigger reflow
             void image.offsetWidth; // Trigger reflow
+            emoji.classList.add('fade-in');
             image.classList.add('fade-in');
         }
         
